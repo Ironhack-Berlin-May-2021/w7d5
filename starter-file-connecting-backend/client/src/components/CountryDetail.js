@@ -1,21 +1,45 @@
 import React from 'react';
 import countries from '../countries.json';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 
 class CountryDetail extends React.Component {
 
+  state = {
+    country: null
+  }
+
+  getCountry = () => {
+    const countryCode = this.props.match.params.id;
+    axios.get(`/api/countries/${countryCode}`)
+      .then(response => {
+        console.log(response);
+        this.setState({
+          country: response.data
+        })
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
+
+  componentDidMount() {
+    this.getCountry();
+  }
+
+  componentDidUpdate(prevProps) {
+    console.log('updated');
+    // when the component is updated then we need to check if the props are 
+    // different to the props before and get the new country
+    if (prevProps !== this.props) {
+      this.getCountry();
+    }
+  }
+
   render() {
-
-    const getCountryByCode = cca3 => countries.find(el => el.cca3 === cca3);
-
-    const country = { ...getCountryByCode(this.props.match.params.id) };
-
-    console.log(country);
-
-    const borders = country.borders.map(cca3 => getCountryByCode(cca3));
-
-    console.log(country);
+    const country = this.state.country;
+    if (!country) return <></>;
     return (
       <div className="col-7">
         <h1>{country.name.common}</h1>
@@ -33,12 +57,12 @@ class CountryDetail extends React.Component {
                 <sup>2</sup>
               </td>
             </tr>
-            {borders.length > 0 && (
+            {country.borders.length > 0 && (
               <tr>
                 <td>Borders</td>
                 <td>
                   <ul>
-                    {borders.map(el => {
+                    {country.borders.map(el => {
                       return (
                         <li key={el.cca3}>
                           <Link to={`/${el.cca3}`}>
